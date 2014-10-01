@@ -5,49 +5,60 @@
  * Tumblr API Version: 2.0
 */
 
+
+// TumblrMachine
+
 function TumblrMachine(name, apiKey, fetch, onReady) {
   this._blogName = name;
   this._apiKey = apiKey;
   this._posts = [];
-  this._limit = 100;
   this._totalPostsCount;
 
-  this.fetchPosts = function(a, b, c) {
+  this._apiManager = new TumblrMachineAPIManager;
+
+
+  if (fetch) {
+    this.fetchPosts(onReady, null);
+  }
+}
+
+TumblrMachine.prototype = {
+  getPosts: function(a, b, c) {
 
     // if no params
     if ( ! a) {
-      this.__fetchPosts();
+      this._apiManager.__fetchPosts();
     }
 
     // if params && isFunction
     else if (a && TumblrMachine.prototype.isFunction(a)) {
-      this.__fetchPosts(a, b);
+      this._apiManager.__fetchPosts(a, b);
     }
 
     else if (a && TumblrMachine.prototype.isNumber(a)) {
       // this.__fetchNumberOfPosts(a, b, c);
     }
 
-  };
+  },
 
-  this.fetchMorePosts = function(success, error) {
+  nextPage: function(success, error) {
     if (this._posts.length === this._totalPostsCount) {
       console.error("TumblrMachine: No more posts.");
       if (success) {
         success(this._posts);
       }
     } else {
-      this.__fetchNextPageOfPosts(success, error);
+      this._apiManager.__fetchNextPageOfPosts(success, error);
     }
-  };
+  },
 
-  this.fetchAllPosts = function(success, error) {
+  fetchAllPosts: function(success, error) {
     // TODO: unFINISHED
-  };
+  },
 
-  this.imageForPost = function(post) {
+  imageForPost: function(post) {
     if (TumblrMachine.prototype.isNumber(post)) {
-      post = this.__getPostById(postOrPostId);
+      post = this._apiManager.__getPostById(postOrPostId);
     }
 
     if (typeof(post) === "undefined") {
@@ -56,9 +67,9 @@ function TumblrMachine(name, apiKey, fetch, onReady) {
     }
 
     return post.type === "photo" ? post.photos[0].original_size.url : post.thumbnail_url;
-  };
+  },
 
-  this.imagesForPosts = function(arg) {
+  imagesForPosts: function(arg) {
     var posts = this._posts;
     var photos = [];
 
@@ -97,35 +108,54 @@ function TumblrMachine(name, apiKey, fetch, onReady) {
     }
 
     return photos;
-  };
+  },
 
-  this.postsForTag = function(t) {
+  postsForTag: function(t) {
     var posts = [];
     for (var i = 0; i < this._posts.length; i++) {
-      var tags = this.__tagsForPost(this._posts[i]);
+      var tags = this._apiManager.__tagsForPost(this._posts[i]);
       if (tags.indexOf(t) >= 0) {
         posts.push(this._posts[i]);
       }
     }
     return posts;
-  };
+  },
 
-  this.postsForTags = function(ts) {
+  postsForTags: function(ts) {
     var posts = [];
     for (var i = 0; i < ts.length; i++) {
       var tag = ts[i].toLowerCase();
       posts = posts.concat(this.postsForTag(tag));
     }
     return posts;
-  };
-
-  if (fetch) {
-    this.fetchPosts(onReady, null);
   }
 }
 
-TumblrMachine.prototype = {
+// Convenience
+TumblrMachine.prototype.isArray = function(x) {
+  return Object.prototype.toString.call(x) === "[object Array]";
+}
+TumblrMachine.prototype.isObject = function(x) {
+  return Object.prototype.toString.call(x) === "[object Object]";
+}
+TumblrMachine.prototype.isString = function(x) {
+  return Object.prototype.toString.call(x) === "[object String]";
+}
+TumblrMachine.prototype.isNumber = function(x) {
+  return Object.prototype.toString.call(x) === "[object Number]";
+}
+TumblrMachine.prototype.isFunction = function(x) {
+  return Object.prototype.toString.call(x) === "[object Function]";
+}
 
+
+// API Manager
+
+function TumblrAPIManager() {
+  this._limit = 100;
+}
+
+TumblrAPIManager.prototype = {
   __getPostById: function(id) {
     var post;
     for (var i = 0; i < this._posts.length; i++) {
@@ -172,7 +202,7 @@ TumblrMachine.prototype = {
   __addHelperMethodsToPosts: function(posts) {
     var self = this;
     for (var i = 0; i < posts.length; i++) {
-      posts[i].imageAsHTML = function() {
+      posts[i].imageHTML = function() {
         var photo = self.imageForPost(this);
         return '<img src="'+ photo +'" />'
       }
@@ -200,8 +230,7 @@ TumblrMachine.prototype = {
   },
 
   __nextPageUrl: function() {
-    // make sure this isn't our first request
-    if ( ! this._totalPostsCount) {
+    if ( ! this.__isFirstRequest()) {
       return this.__postsUrl();
     }
     return this.__postsUrl() + "&before_id=" + this._posts[this._posts.length - 1].id;
@@ -209,22 +238,9 @@ TumblrMachine.prototype = {
 
   __haveAllPosts: function() {
     return this._posts.length === this._totalPostsCount;
-  }
-}
+  },
 
-// Convenience
-TumblrMachine.prototype.isArray = function(x) {
-  return Object.prototype.toString.call(x) === "[object Array]";
-}
-TumblrMachine.prototype.isObject = function(x) {
-  return Object.prototype.toString.call(x) === "[object Object]";
-}
-TumblrMachine.prototype.isString = function(x) {
-  return Object.prototype.toString.call(x) === "[object String]";
-}
-TumblrMachine.prototype.isNumber = function(x) {
-  return Object.prototype.toString.call(x) === "[object Number]";
-}
-TumblrMachine.prototype.isFunction = function(x) {
-  return Object.prototype.toString.call(x) === "[object Function]";
+  __isFirstRequest: function() {
+    return this._totalPostsCount > 0;
+  }
 }
