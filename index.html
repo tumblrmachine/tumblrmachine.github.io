@@ -16,6 +16,8 @@
 
   <h1>TumblrMachine - <small><small>Tumblr as a CMS</small></small></h1>
 
+  <p>new TumblrMachine(name, apiKey, shouldFetchOnLoad, onReady)</p>
+
   <h3>Fetching</h3>
   <p>getPosts()</p>
   <p>getPosts(success)</p>
@@ -28,15 +30,18 @@
   <p>getNextPage(success)</p>
   <p>getNextPage(success, error)</p>
 
-  <h3>Images</h3>
+  <h3>Images (local)</h3>
   <p>imageForPost(post_or_postID)</p>
   <p>imagesForPosts()</p>
   <p>imagesForPosts([start, end])</p>
   <p>imagesForPosts(posts)</p>
 
-  <h3>Tags</h3>
+  <h3>Tags (local)</h3>
   <p>postsForTag(tag) [local]</p>
   <p>postsForTags([tags]) [local]</p>
+
+  <h3>Filtering (local)</h3>
+  <p>posts(type) ["text", "photo", "quote", "link", "chat", "audio", "video", "answer"]</p>
 
   <script src="script.js"></script>
 </body>
