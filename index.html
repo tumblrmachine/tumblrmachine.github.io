@@ -10,38 +10,18 @@
   <script src="TumblrMachine.js"></script>
 
   <link href="http://mikekavouras.com/mike.css" rel="stylesheet">
+  <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
 
 </head>
 <body>
 
-  <h1>TumblrMachine - <small><small>Tumblr as a CMS</small></small></h1>
-
-  <p>new TumblrMachine(name, apiKey, preventAutoFetch, onReady)</p>
-
-  <h3>Fetching</h3>
-  <p>getPosts()</p>
-  <p>getPosts(success)</p>
-  <p>getPosts(success, error)</p>
-  <p><i>getPosts(number)</i></p>
-  <p>getAllPosts() (Not engcouraged for blogs with &gt; 200-300 posts. May fail with larger quantities)</p>
-
-  <h3>Pagination</h3>
-  <p>getNextPage()</p>
-  <p>getNextPage(success)</p>
-  <p>getNextPage(success, error)</p>
-
-  <h3>Images (local)</h3>
-  <p>imageForPost(post_or_postID)</p>
-  <p>imagesForPosts()</p>
-  <p>imagesForPosts([start, end])</p>
-  <p>imagesForPosts(posts)</p>
-
-  <h3>Tags (local)</h3>
-  <p>postsForTag(tag) [local]</p>
-  <p>postsForTags([tags]) [local]</p>
-
-  <h3>Filtering (local)</h3>
-  <p><i>posts(type) ["text", "photo", "quote", "link", "chat", "audio", "video", "answer"]</i></p>
+  <div class="container">
+    <div class="col-lg-4">&nbsp;</div>
+    <div class="col-lg-4">
+      <input type="text" placeholder="Tumblr blog name" id="blog-name" style="width: 100%;">
+    </div>
+    <div class="col-lg-4">&nbsp;</div>
+  </div>
 
   <script src="script.js"></script>
 </body>
