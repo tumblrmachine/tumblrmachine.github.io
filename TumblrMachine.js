@@ -5,20 +5,27 @@
  * Tumblr API Version: 2.0
 */
 
-
 // TumblrMachine
 
-function TumblrMachine(name, apiKey, fetch, onReady) {
+function TumblrMachine(name, apiKey, preventFetch, onReady) {
 
   assert(name != null, "TumblrMachine: Please provide a blog name");
   assert(apiKey != null, "TumblrMachine: Please provide an API key");
 
+  this.posts = [];
   this._blogName = name;
   this._apiKey = apiKey;
+  this._firstFetch = true;
 
+  var self = this;
   this._apiManager = new TumblrMachineAPIManager(name, apiKey);
+  this._apiManager.bind('fetched', function() {
+    self._firstFetched = false;
+  });
 
-  if (fetch) {
+  this._setupObservers();
+
+  if (preventFetch !== true) {
     this.getPosts(onReady, null);
   }
 }
@@ -42,19 +49,31 @@ TumblrMachine.prototype = {
 
   },
 
-  nextPage: function(success, error) {
-    if (this.hasMorePosts()) {
+  getNextPage: function(success, error) {
+    if (! this.hasMorePosts() && ! this._firstFetch) {
       console.error("TumblrMachine: No more posts.");
       if (success) {
-        success(this._posts);
+        success(this.posts);
       }
     } else {
       this._apiManager.__fetchNextPageOfPosts(success, error);
     }
   },
 
-  fetchAllPosts: function(success, error) {
-    // TODO: unFINISHED
+  getAllPosts: function(success, error) {
+    var self = this;
+    var firstTime = true;
+    var block = function() {
+      if (firstTime || self.hasMorePosts()) {
+        firstTime = false;
+        self._apiManager.__fetchNextPageOfPosts(block, error);
+      } else {
+        if (success) {
+          success(self.posts);
+        }
+      }
+    }
+    block();
   },
 
   imageForPost: function(post) {
@@ -113,30 +132,37 @@ TumblrMachine.prototype = {
 
   postsForTag: function(t) {
     var posts = [];
-    for (var i = 0; i < this._posts.length; i++) {
-      var tags = this._apiManager.__tagsForPost(this._posts[i]);
+    for (var i = 0; i < this.posts.length; i++) {
+      var tags = this._apiManager.__tagsForPost(this.posts[i]);
       if (tags.indexOf(t) >= 0) {
-        posts.push(this._posts[i]);
+        posts.push(this.posts[i]);
       }
     }
     return posts;
   },
 
-  postsForTags: function(ts) {
+  postsForTags: function() {
     var posts = [];
-    for (var i = 0; i < ts.length; i++) {
-      var tag = ts[i].toLowerCase();
+    for (var i = 0; i < arguments.length; i++) {
+      var tag = arguments[i].toLowerCase();
       posts = posts.concat(this.postsForTag(tag));
     }
     return posts;
   },
 
   hasMorePosts: function() {
-    return this._posts.length === this._totalPostsCount;
+    return this.posts.length !== this._apiManager._totalPostsCount;
   },
 
-  posts: function() {
-    return this._apiManager.__posts();
+  _setupObservers: function() {
+    var self = this;
+    Object.observe(this._apiManager._posts, function(change) {
+      for (var i = 0; i < change.length; i++) {
+        if (change[i].name === "_posts" && change[i].type === "update") {
+          self.posts = change[i].object._posts;
+        }
+      }
+    });
   }
 }
 
@@ -157,12 +183,12 @@ TumblrMachine.prototype.isFunction = function(x) {
   return Object.prototype.toString.call(x) === "[object Function]";
 }
 
-
 // API Manager
 
 function TumblrMachineAPIManager(name, key) {
   this._limit = 100;
-  this._posts = new TumblrPostsCollection();
+  this._perPage = 20;
+  this._posts = new TumblrMachinePostsCollection();
   this._totalPostsCount = 0;
   this._apiKey = key;
   this._blogName = name;
@@ -172,6 +198,7 @@ TumblrMachineAPIManager.prototype = {
   __posts: function() {
     return this._posts._posts;
   },
+
   __getPostById: function(id) {
     var post;
     for (var i = 0; i < this._posts.length; i++) {
@@ -202,12 +229,11 @@ TumblrMachineAPIManager.prototype = {
   __fetchPostsWithUrl: function(success, error, url) {
     var self = this;
     $.getJSON(url, function(r) {
-      var posts = r.response.posts.map(function(post) { return new TumblrMachinePost(post); });
-      self._posts.add(posts);
-      self._totalPostsCount = r.response.total_posts;
+      self.trigger('fetched');
+      var posts = self.__processPostsFromResponse(r)
       if (r.meta.status === 200) {
         if (success) {
-          success(self._posts._posts);
+          success(posts);
         }
       } else {
         console.error("TumblrMachine: There was an error fetching posts.");
@@ -215,14 +241,11 @@ TumblrMachineAPIManager.prototype = {
     });
   },
 
-  __addHelperMethodsToPosts: function(posts) {
-    var self = this;
-    for (var i = 0; i < posts.length; i++) {
-      posts[i].imageHTML = function() {
-        var photo = self.imageForPost(this);
-        return '<img src="'+ photo +'" />'
-      }
-    }
+  __processPostsFromResponse: function(r) {
+    var posts = r.response.posts.map(function(post) { return new TumblrMachinePost(post); });
+    this._posts.add(posts);
+    this._totalPostsCount = r.response.total_posts;
+    return posts;
   },
 
   __tagsForPost: function(post) {
@@ -249,7 +272,7 @@ TumblrMachineAPIManager.prototype = {
     if ( ! this.__isFirstRequest()) {
       return this.__postsUrl();
     }
-    return this.__postsUrl() + "&before_id=" + this._posts[this._posts.length - 1].id;
+    return this.__postsUrl() + "&before_id=" + this.__posts()[this.__posts().length - 1].id;
   },
 
   __haveAllPosts: function() {
@@ -263,14 +286,15 @@ TumblrMachineAPIManager.prototype = {
 
 // TumblrPost
 
-function TumblrPostsCollection(posts) {
+function TumblrMachinePostsCollection(posts) {
   this._posts = posts || [];
 }
 
-TumblrPostsCollection.prototype = {
+TumblrMachinePostsCollection.prototype = {
   add: function(posts) {
     // add post(s) - make sure there aren't any dups
     this._posts = this._posts.concat(posts);
+    this.trigger('change', {newValue: posts});
   },
 
   remove: function(post_or_postID) {
@@ -291,8 +315,8 @@ function TumblrMachinePost(post) {
   this.permalinkUrl = post.permalink_url;
   this.player = post.player;
   this.postUrl = post.postUrl;
-  this.reblogKey = post.reblogKey;
-  this.shortUrl = post.shortUrl;
+  this.reblogKey = post.reblog_key;
+  this.shortUrl = post.short_url;
   this.slug = post.slug;
   this.sourceTitle = post.source_title;
   this.sourceUrl = post.source_url;
@@ -312,5 +336,24 @@ TumblrMachinePost.prototype = function(post) {
 function assert(condition, message) {
   if ( ! condition) {
     throw message || "Illegal";
+  }
+}
+
+Object.prototype.bind = function(ev, callback) {
+  this.listeners = this.listeners || [];
+  var event = {identifier: ev, callback: callback };
+  this.listeners.push(event);
+}
+
+Object.prototype.trigger = function(ev, data) {
+  if ( ! this.listeners || ! this.listeners.length) {
+    return;
+  }
+
+  for (var i = 0; i < this.listeners.length; i++) {
+    var l = this.listeners[i];
+    if (l.identifier === ev) {
+      l.callback.call(this, data);
+    }
   }
 }

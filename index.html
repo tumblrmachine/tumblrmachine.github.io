@@ -16,14 +16,14 @@
 
   <h1>TumblrMachine - <small><small>Tumblr as a CMS</small></small></h1>
 
-  <p>new TumblrMachine(name, apiKey, shouldFetchOnLoad, onReady)</p>
+  <p>new TumblrMachine(name, apiKey, preventAutoFetch, onReady)</p>
 
   <h3>Fetching</h3>
   <p>getPosts()</p>
   <p>getPosts(success)</p>
   <p>getPosts(success, error)</p>
-  <p>getPosts(number)</p>
-  <p>getAllPosts() [limit: 100]</p>
+  <p><i>getPosts(number)</i></p>
+  <p>getAllPosts() (Not engcouraged for blogs with &gt; 200-300 posts. May fail with larger quantities)</p>
 
   <h3>Pagination</h3>
   <p>getNextPage()</p>
