@@ -302,35 +302,101 @@ TumblrMachinePostsCollection.prototype = {
   }
 }
 
+// https://www.tumblr.com/docs/en/api/v2#posts
 function TumblrMachinePost(post) {
-  this.blogName = post.blog_name;
-  this.bookmarklet = post.bookmarklet;
-  this.caption = post.caption;
-  this.date = post.date;
-  this.format = post.format;
-  this.highlighted = post.highlighted;
-  this.html5Capable = post.html5_capable;
-  this.id = post.id;
-  this.note_count = post.note_count;
-  this.permalinkUrl = post.permalink_url;
-  this.player = post.player;
-  this.postUrl = post.postUrl;
-  this.reblogKey = post.reblog_key;
-  this.shortUrl = post.short_url;
-  this.slug = post.slug;
-  this.sourceTitle = post.source_title;
-  this.sourceUrl = post.source_url;
-  this.state = post.state;
-  this.tags = post.tags;
-  this.thumbnailHeight = post.thumbnail_height;
-  this.thumbnailUrl = post.thumbnail_url;
-  this.thumbnailWidth = post.thumbnail_width;
-  this.timestamp = post.timestamp;
-  this.type = post.type;
-  this.videoType = post.video_type;
+
+  /* All */
+  this.blogName = post.blog_name; // string
+  this.id = post.id; // number
+  this.postUrl = post.post_url; // string
+  this.type = post.type; // string
+  this.timestamp = post.timestamp; // number
+  this.date = post.date; // string
+  this.format = post.format; // string
+  this.reblogKey = post.reblog_key; // string
+  this.tags = post.tags; // array
+  this.bookmarklet = post.bookmarklet; // boolean
+  this.mobile = post.mobile; // boolean
+  this.sourceUrl = post.source_url; // string
+  this.sourceTitle = post.source_title; // string
+  this.liked = post.liked; // boolean
+  this.state = post.state; // string (published, queued, draft, private)
+  this.noteCount = post.note_count; // number
+  this.shortUrl = post.short_url; // string
+
+  /* Text */
+  if (this.type === "text") {
+    this.title = post.title; // string
+    this.body = post.body; // string
+  }
+
+  /* Photo */
+  if (this.type === "photo") {
+    this.photos = post.photos; // array
+    this.caption = post.caption; // string
+    this.width = post.width; // number
+    this.height = post.height; // number
+    this.imagePermalink = post.image_permalink; // string
+  }
+
+  /* Quote */
+  if (this.type === "quote" ) {
+    this.text = post.text; // string
+    this.source = post.source; // string
+  }
+
+  /* Link */
+  if (this.type === "link") {
+    this.title
+    this.url = post.url; // string
+    this.description = post.description; // string
+  }
+
+  /* Chat */
+  if (this.type === "chat") {
+    this.title
+    this.body
+    this.dialogue = post.dialogue; // array
+  }
+
+  /* Audio */
+  if (this.type === "audio") {
+    this.caption = post.caption; // string
+    this.player = post.player; // string
+    this.plays = post.plays; // number
+    this.albumArt = post.album_art; // string
+    this.artist = post.artist; // string
+    this.album = post.album; // string
+    this.trackName = post.track_name; // string
+    this.trackNumber = post.track_number; // number
+    this.year = post.year; // number
+  }
+
+  /* Video */
+  if (this.type === "video") {
+    this.caption; // string
+    this.player; // array
+  }
+
+  /* Answer */
+  if (this.type === "answer") {
+    this.askingName = post.asking_name; // string
+    this.askingUrl = post.asking_url; // string
+    this.question = post.question; // string
+    this.answer = post.answer; // string
+  }
+
+  this.sizes = ["xs", "s", "m", "l", "xl", "original"];
 }
 
-TumblrMachinePost.prototype = function(post) {
+TumblrMachinePost.prototype = {
+  imageSizeForSize: function(size) {
+    assert(TumblrMachine.prototype.isObject(size) || TumblrMachine.prototype.isString(size), "Invalid argument type");
+    assert(this.sizes.indexOf(size) >= 0, "Invalid size: must be one of the following: " + this.sizes);
+  },
+
+  imageForSize: function(size) {
+  }
 }
 
 function assert(condition, message) {
