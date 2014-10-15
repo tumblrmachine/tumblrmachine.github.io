@@ -78,7 +78,7 @@ TumblrMachine.prototype = {
 
   imageForPost: function(post) {
     if (TumblrMachine.prototype.isNumber(post)) {
-      post = this._apiManager.__getPostById(postOrPostId);
+      post = this._apiManager.__getPostById(post);
     }
 
     if (typeof(post) === "undefined") {
@@ -113,7 +113,7 @@ TumblrMachine.prototype = {
       } else if (TumblrMachine.prototype.isObject(arr[0])) {
         posts = arr;
       } else {
-        consle.error("TumblrMachine: imagesForPosts - invalid argument");
+        console.error("TumblrMachine: imagesForPosts - invalid argument");
         return [];
       }
     }
@@ -169,19 +169,19 @@ TumblrMachine.prototype = {
 // Convenience
 TumblrMachine.prototype.isArray = function(x) {
   return Object.prototype.toString.call(x) === "[object Array]";
-}
+};
 TumblrMachine.prototype.isObject = function(x) {
   return Object.prototype.toString.call(x) === "[object Object]";
-}
+};
 TumblrMachine.prototype.isString = function(x) {
   return Object.prototype.toString.call(x) === "[object String]";
-}
+};
 TumblrMachine.prototype.isNumber = function(x) {
   return Object.prototype.toString.call(x) === "[object Number]";
-}
+};
 TumblrMachine.prototype.isFunction = function(x) {
   return Object.prototype.toString.call(x) === "[object Function]";
-}
+};
 
 // API Manager
 
@@ -230,7 +230,7 @@ TumblrMachineAPIManager.prototype = {
     var self = this;
     $.getJSON(url, function(r) {
       self.trigger('fetched');
-      var posts = self.__processPostsFromResponse(r)
+      var posts = self.__processPostsFromResponse(r);
       if (r.meta.status === 200) {
         if (success) {
           success(posts);
@@ -282,7 +282,7 @@ TumblrMachineAPIManager.prototype = {
   __isFirstRequest: function() {
     return this._totalPostsCount > 0;
   }
-}
+};
 
 // TumblrPost
 
@@ -297,10 +297,10 @@ TumblrMachinePostsCollection.prototype = {
     this.trigger('change', {newValue: posts});
   },
 
-  remove: function(post_or_postID) {
+  remove: function(postOrPostID) {
     // remove post
   }
-}
+};
 
 // https://www.tumblr.com/docs/en/api/v2#posts
 function TumblrMachinePost(post) {
@@ -347,15 +347,15 @@ function TumblrMachinePost(post) {
 
   /* Link */
   if (this.type === "link") {
-    this.title
+    this.title = null;
     this.url = post.url; // string
     this.description = post.description; // string
   }
 
   /* Chat */
   if (this.type === "chat") {
-    this.title
-    this.body
+    this.title = null;
+    this.body = null;
     this.dialogue = post.dialogue; // array
   }
 
@@ -374,8 +374,8 @@ function TumblrMachinePost(post) {
 
   /* Video */
   if (this.type === "video") {
-    this.caption; // string
-    this.player; // array
+    this.caption = null; // string
+    this.player = null; // array
   }
 
   /* Answer */
