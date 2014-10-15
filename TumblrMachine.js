@@ -46,7 +46,6 @@ TumblrMachine.prototype = {
     else if (a && TumblrMachine.prototype.isNumber(a)) {
       // this.__fetchNumberOfPosts(a, b, c);
     }
-
   },
 
   getNextPage: function(success, error) {
@@ -84,7 +83,7 @@ TumblrMachine.prototype = {
     if (typeof(post) === "undefined") {
       console.error("TumblrMachine: The post requested does not exist");
       return null;
-    };
+    }
 
     return post.type === "photo" ? post.photos[0].original_size.url : post.thumbnail_url;
   },
@@ -358,7 +357,7 @@ TumblrMachinePost.prototype = {
       case "answer":
         this.setupAnswerPost(post);
         break;
-    };
+    }
   },
 
   setupTextPost: function(post) {
@@ -380,14 +379,14 @@ TumblrMachinePost.prototype = {
   },
 
   setupLinkPost: function(post) {
-    this.title;
+    this.title = post.title;
     this.url = post.url; // string
     this.description = post.description; // string
   },
 
   setupChatPost: function(post) {
-    this.title;
-    this.body;
+    this.title = post.title;
+    this.body = post.body;
     this.dialogue = post.dialogue; // array
   },
 
@@ -404,8 +403,8 @@ TumblrMachinePost.prototype = {
   },
 
   setupVideoPost: function(post) {
-    this.caption; // string
-    this.player; // array
+    this.caption = post.caption; // string
+    this.player = post.player; // array
   },
 
   setupAnswerPost: function(post) {
@@ -422,7 +421,7 @@ TumblrMachinePost.prototype = {
 
   imageForSize: function(size) {
   }
-}
+};
 
 function assert(condition, message) {
   if ( ! condition) {
@@ -434,7 +433,7 @@ Object.prototype.bind = function(ev, callback) {
   this.listeners = this.listeners || [];
   var event = {identifier: ev, callback: callback };
   this.listeners.push(event);
-}
+};
 
 Object.prototype.trigger = function(ev, data) {
   if ( ! this.listeners || ! this.listeners.length) {
@@ -447,4 +446,4 @@ Object.prototype.trigger = function(ev, data) {
       l.callback.call(this, data);
     }
   }
-}
+};
