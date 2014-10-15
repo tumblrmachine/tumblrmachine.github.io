@@ -1,49 +1,39 @@
+var key = "2W5eRXOm7i0ZpdlEKi3g2G6wCAOJsTBpJ45aenzuNGikak9tl2"
 var t;
+function processPosts(collection, last) {
+  var $photos = $('#photos');
+  var $more = $('#more');
+  var posts = collection.posts('photo');
+  for (var i = 0; i < posts.length; i++) {
+    var post = posts[i];
+    var medium = post.imageForSize('m').url;
+    var original = post.imageForSize('original').url;
+    $photos.append('<a href="' + original + '" target="_blank"><img src="' + medium + '"></a>');
+  }
+
+  $more.toggle(!last);
+}
 
 function createTumblrMachine(name) {
-  var $photos = $('#photos');
-  var apiKey = "2W5eRXOm7i0ZpdlEKi3g2G6wCAOJsTBpJ45aenzuNGikak9tl2";
-  var blogName = name;
-
-  $photos.empty();
-
-  t = new TumblrMachine(blogName, apiKey, false, function(collection, last) {
-    var posts = collection.posts('photo');
-    for (var i = 0; i < posts.length; i++) {
-      $photos.append('<img src="' + posts[i].imageForSize('m').url + '">');
-    }
-
-    $('#more').show();
-    if (last) {
-      $('#more').hide();
-    }
+  t = new TumblrMachine(name, key, false, function(collection, last) {
+    processPosts(collection, last);
   });
 };
 
 function getNextPage() {
-  var $photos = $('#photos');
   t.getNextPage(function(collection, last) {
-    console.log(last);
-    var posts = collection.posts('photo');
-    for (var i = 0; i < posts.length; i++) {
-      $photos.append('<img src="' + posts[i].imageForSize('m').url + '">');
-    }
-
-    if (last) {
-      $('#more').hide();
-    }
+    processPosts(collection, last);
   });
 }
 
 $(document).ready(function() {
-  var $more = $('#more');
-
   $('#form').bind('submit', function(e) {
     e.preventDefault();
+    $('#photos').empty();
     createTumblrMachine($('#blog-name').val());
   });
 
-  $more.bind('click', function() {
+  $('#more').bind('click', function() {
     getNextPage();
   });
 });

@@ -329,7 +329,7 @@ TumblrMachinePost.prototype = {
 
     var photo = this.photos[0];
     var idx = (photo.alt_sizes.length - 1) - this.sizes.indexOf(size);
-    return photo.alt_sizes[idx];
+    return photo.alt_sizes[idx] || photo.alt_sizes[0];
   },
 
   // @private
@@ -436,7 +436,6 @@ TumblrMachinePost.prototype = {
     this.question = post.question; // string
     this.answer = post.answer; // string
   }
-
 };
 
 function assert(condition, message) {
