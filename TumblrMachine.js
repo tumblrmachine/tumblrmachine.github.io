@@ -21,7 +21,7 @@ function TumblrMachine(name, apiKey, preventFetch, onReady) {
   this.__setupObservers();
 
   if (preventFetch !== true) {
-    this.getPosts(this, onReady, null);
+    this.getPosts(onReady, null);
   }
 }
 
@@ -30,14 +30,13 @@ TumblrMachine.prototype = {
     if ( ! type) {
       return this._posts;
     } else {
-      return this._posts.filter(function(post) {
-        return post.type === type;
-      });
+      var collection = new TumblrMachinePostsCollection(this._posts);
+      return collection.posts(type);
     }
   },
 
   getPosts: function(a, b, c) {
-    if ( ! this.firstFetch) {
+    if ( ! this._firstFetch) {
       this.getNextPage(a, b, c);
     } else {
       // if no params
@@ -59,11 +58,8 @@ TumblrMachine.prototype = {
   getNextPage: function(success, error) {
     if ( ! this.hasMorePosts() && ! this._firstFetch) {
       console.error("TumblrMachine: No more posts.");
-      if (success) {
-        success(this.posts);
-      }
     } else {
-      this._apiManager.__fetchNextPageOfPosts(success, error);
+      this._apiManager.__fetchNextPageOfPosts(this, success, error);
     }
   },
 
@@ -160,14 +156,14 @@ TumblrMachine.prototype = {
   },
 
   hasMorePosts: function() {
-    return this.posts.length !== this._apiManager._totalPostsCount;
+    return this.posts().length !== this._apiManager._totalPostsCount;
   },
 
   __setupObservers: function() {
     var self = this;
 
     this._apiManager.bind('fetched', function() {
-      self._firstFetched = false;
+      self._firstFetch = false;
     });
 
     this._apiManager._posts.bind('update', function(change) {
@@ -243,7 +239,7 @@ TumblrMachineAPIManager.prototype = {
       var posts = self.__processPostsFromResponse(r);
       if (r.meta.status === 200) {
         if (success) {
-          success.call(machine, posts);
+          success.call(machine, new TumblrMachinePostsCollection(posts), self._totalPostsCount === self._posts._posts.length);
         }
       } else {
         console.error("TumblrMachine: There was an error fetching posts.");
@@ -309,6 +305,12 @@ TumblrMachinePostsCollection.prototype = {
 
   remove: function(postOrPostID) {
     // remove post
+  },
+
+  posts: function(type) {
+    return this._posts.filter(function(post) {
+      return post.type === type;
+    });
   }
 };
 
