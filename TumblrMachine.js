@@ -9,8 +9,8 @@
 
 function TumblrMachine(name, apiKey, preventFetch, onReady) {
 
-  assert(name != null, "TumblrMachine: Please provide a blog name");
-  assert(apiKey != null, "TumblrMachine: Please provide an API key");
+  assert(name !== null, "TumblrMachine: Please provide a blog name");
+  assert(apiKey !== null, "TumblrMachine: Please provide an API key");
 
   this.posts = [];
   this._blogName = name;
@@ -72,7 +72,7 @@ TumblrMachine.prototype = {
           success(self.posts);
         }
       }
-    }
+    };
     block();
   },
 
@@ -84,7 +84,7 @@ TumblrMachine.prototype = {
     if (typeof(post) === "undefined") {
       console.error("TumblrMachine: The post requested does not exist");
       return null;
-    }
+    };
 
     return post.type === "photo" ? post.photos[0].original_size.url : post.thumbnail_url;
   },
@@ -164,7 +164,7 @@ TumblrMachine.prototype = {
       }
     });
   }
-}
+};
 
 // Convenience
 TumblrMachine.prototype.isArray = function(x) {
@@ -305,62 +305,93 @@ TumblrMachinePostsCollection.prototype = {
 // https://www.tumblr.com/docs/en/api/v2#posts
 function TumblrMachinePost(post) {
 
-  /* All */
-  this.blogName = post.blog_name; // string
-  this.id = post.id; // number
-  this.postUrl = post.post_url; // string
-  this.type = post.type; // string
-  this.timestamp = post.timestamp; // number
-  this.date = post.date; // string
-  this.format = post.format; // string
-  this.reblogKey = post.reblog_key; // string
-  this.tags = post.tags; // array
-  this.bookmarklet = post.bookmarklet; // boolean
-  this.mobile = post.mobile; // boolean
-  this.sourceUrl = post.source_url; // string
-  this.sourceTitle = post.source_title; // string
-  this.liked = post.liked; // boolean
-  this.state = post.state; // string (published, queued, draft, private)
-  this.noteCount = post.note_count; // number
-  this.shortUrl = post.short_url; // string
+  this.setup(post);
 
-  /* Text */
-  if (this.type === "text") {
+
+  this.sizes = ["xs", "s", "m", "l", "xl", "original"];
+}
+
+TumblrMachinePost.prototype = {
+  setup: function(post) {
+
+    /* All */
+    this.blogName = post.blog_name; // string
+    this.id = post.id; // number
+    this.postUrl = post.post_url; // string
+    this.type = post.type; // string
+    this.timestamp = post.timestamp; // number
+    this.date = post.date; // string
+    this.format = post.format; // string
+    this.reblogKey = post.reblog_key; // string
+    this.tags = post.tags; // array
+    this.bookmarklet = post.bookmarklet; // boolean
+    this.mobile = post.mobile; // boolean
+    this.sourceUrl = post.source_url; // string
+    this.sourceTitle = post.source_title; // string
+    this.liked = post.liked; // boolean
+    this.state = post.state; // string (published, queued, draft, private)
+    this.noteCount = post.note_count; // number
+    this.shortUrl = post.short_url; // string
+
+    switch (this.type) {
+      case "text":
+        this.setupTextPost(post);
+        break;
+      case "photo":
+        this.setupPhotoPost(post);
+        break;
+      case "quote":
+        this.setupQuotePost(post);
+        break;
+      case "link":
+        this.setupLinkPost(post);
+        break;
+      case "chat":
+        this.setupChatPost(post);
+        break;
+      case "audio":
+        this.setupAudioPost(post);
+        break;
+      case "video":
+        this.setupVideoPost(post);
+        break;
+      case "answer":
+        this.setupAnswerPost(post);
+        break;
+    };
+  },
+
+  setupTextPost: function(post) {
     this.title = post.title; // string
     this.body = post.body; // string
-  }
+  },
 
-  /* Photo */
-  if (this.type === "photo") {
+  setupPhotoPost: function(post) {
     this.photos = post.photos; // array
     this.caption = post.caption; // string
     this.width = post.width; // number
     this.height = post.height; // number
     this.imagePermalink = post.image_permalink; // string
-  }
+  },
 
-  /* Quote */
-  if (this.type === "quote" ) {
+  setupQuotePost: function(post) {
     this.text = post.text; // string
     this.source = post.source; // string
-  }
+  },
 
-  /* Link */
-  if (this.type === "link") {
-    this.title = null;
+  setupLinkPost: function(post) {
+    this.title;
     this.url = post.url; // string
     this.description = post.description; // string
-  }
+  },
 
-  /* Chat */
-  if (this.type === "chat") {
-    this.title = null;
-    this.body = null;
+  setupChatPost: function(post) {
+    this.title;
+    this.body;
     this.dialogue = post.dialogue; // array
-  }
+  },
 
-  /* Audio */
-  if (this.type === "audio") {
+  setupAudioPost: function(post) {
     this.caption = post.caption; // string
     this.player = post.player; // string
     this.plays = post.plays; // number
@@ -370,26 +401,20 @@ function TumblrMachinePost(post) {
     this.trackName = post.track_name; // string
     this.trackNumber = post.track_number; // number
     this.year = post.year; // number
-  }
+  },
 
-  /* Video */
-  if (this.type === "video") {
-    this.caption = null; // string
-    this.player = null; // array
-  }
+  setupVideoPost: function(post) {
+    this.caption; // string
+    this.player; // array
+  },
 
-  /* Answer */
-  if (this.type === "answer") {
+  setupAnswerPost: function(post) {
     this.askingName = post.asking_name; // string
     this.askingUrl = post.asking_url; // string
     this.question = post.question; // string
     this.answer = post.answer; // string
-  }
+  },
 
-  this.sizes = ["xs", "s", "m", "l", "xl", "original"];
-}
-
-TumblrMachinePost.prototype = {
   imageSizeForSize: function(size) {
     assert(TumblrMachine.prototype.isObject(size) || TumblrMachine.prototype.isString(size), "Invalid argument type");
     assert(this.sizes.indexOf(size) >= 0, "Invalid size: must be one of the following: " + this.sizes);
