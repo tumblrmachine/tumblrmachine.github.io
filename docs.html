@@ -18,17 +18,14 @@
 
   <p>new TumblrMachine(name, apiKey, preventAutoFetch, onReady)</p>
 
+  <p>posts(<i>type</i>) <small>["text", "photo", "quote", "link", "chat", "audio", "video", "answer"]</small></p>
   <h3>Fetching</h3>
-  <p>getPosts()</p>
-  <p>getPosts(success)</p>
-  <p>getPosts(success, error)</p>
+  <p>getPosts(<i>success</i>, <i>error</i>)</p>
   <p><i>getPosts(number)</i></p>
-  <p>getAllPosts() (Not engcouraged for blogs with &gt; 200-300 posts. May fail with larger quantities)</p>
+  <p>getAllPosts(<i>success</i>, <i>error</i>) <small>(Not engcouraged for blogs with &gt; 200-300 posts. May fail with larger quantities)</small></p>
 
   <h3>Pagination</h3>
-  <p>getNextPage()</p>
-  <p>getNextPage(success)</p>
-  <p>getNextPage(success, error)</p>
+  <p>getNextPage(<i>success</i>, <i>error</i>)</p>
 
   <h3>Images (local)</h3>
   <p>imageForPost(post_or_postID)</p>
@@ -41,7 +38,6 @@
   <p>postsForTags([tags]) [local]</p>
 
   <h3>Filtering (local)</h3>
-  <p><i>posts(type) ["text", "photo", "quote", "link", "chat", "audio", "video", "answer"]</i></p>
 
   <script src="script.js"></script>
 </body>
