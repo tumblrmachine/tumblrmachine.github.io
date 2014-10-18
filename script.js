@@ -4,15 +4,35 @@ var $window;
 var $body;
 var done = false;
 var fetching = false;
+var types;
+
+function appendPhotoPost(post, $photos) {
+  var medium = post.imagesForSize('m')[0].url;
+  var original = post.imagesForSize('original')[0].url;
+  $photos.append('<a href="' + original + '" target="_blank"><img src="' + medium + '"></a>');
+}
+
+function appendVideoPost(post, $photos) {
+  var video = post.videoForSize('m').embed_code;
+  $photos.append(video);
+}
+
+function appendTextPost(post, $photos) {
+  $photos.append('<a href="' + post.postUrl + '" target="_blank">' + post.title + '</a><br>');
+}
 
 function processPosts(collection, last) {
   var $photos = $('#photos');
-  var posts = collection.posts('photo');
+  var posts = collection.posts(types);
   for (var i = 0; i < posts.length; i++) {
     var post = posts[i];
-    var medium = post.imageForSize('m').url;
-    var original = post.imageForSize('original').url;
-    $photos.append('<a href="' + original + '" target="_blank"><img src="' + medium + '"></a>');
+    if (post.hasPhoto()) {
+      appendPhotoPost(post, $photos);
+    } else if (post.type === "video") {
+      appendVideoPost(post, $photos);
+    } else if (post.type === "text") {
+      appendTextPost(post, $photos);
+    }
   }
   done = last;
   fetching = false;
@@ -26,6 +46,7 @@ function createTumblrMachine(name) {
 };
 
 function getNextPage() {
+  if (!t) return;
   fetching = true;
   t.getNextPage(function(collection, last) {
     processPosts(collection, last);
@@ -43,6 +64,7 @@ $(document).ready(function() {
   $('#form').bind('submit', function(e) {
     e.preventDefault();
     done = false;
+    types = $('#types input[type=checkbox]:checked').map(function(idx, elem) { return $(elem).attr('name'); }).splice(0).join(',');
     $('#photos').empty();
     createTumblrMachine($('#blog-name').val());
   });
