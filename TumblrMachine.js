@@ -370,7 +370,7 @@ TumblrMachinePost.prototype = {
         this.__setupVideoPost(post);
         break;
       case "answer":
-        this._setupAnswerPost(post);
+        this.__setupAnswerPost(post);
         break;
     }
   },
