@@ -1,7 +1,7 @@
 /*
  * TumblrMachine: by Mike Kavouras
  *
- * Version: 0.5
+ * Version: 0.6
  * Tumblr API Version: 2.0
 */
 
@@ -469,8 +469,20 @@ TumblrMachinePost.prototype = {
     }
   },
 
-  contentAsObject: function() {
-
+  __contentAsObject: function() {
+    switch (this.type) {
+      case "text":
+        var imgReg = new RegExp(/<img[\w\W]+?\/>/g);
+        var pReg = new RegExp(/<p[\w\W]+?\/p>/g);
+        var images = this.body.match(imgReg);
+        var text = this.body.match(pReg);
+        return {photos: images, text: text};
+        break;
+      case "photo":
+        return {photos: this.photos};
+      default:
+        return null;
+    }
   }
 };
 
