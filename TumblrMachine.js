@@ -10,6 +10,8 @@ function TumblrMachine(name, apiKey, preventFetch, onReady) {
   assert(name !== null, "TumblrMachine: Please provide a blog name");
   assert(apiKey !== null, "TumblrMachine: Please provide an API key");
 
+  this.defaultImageSize = 'm';
+
   this._posts = [];
   this._blogName = name;
   this._apiKey = apiKey;
@@ -324,6 +326,14 @@ TumblrMachinePost.prototype = {
     return this.player && this.player.length > 0;
   },
 
+  content: function(asObject) {
+    if (asObject) {
+      return this.__contentAsObject();
+    } else {
+      return this.__formattedContent();
+    }
+  },
+
   // @private
 
   __setup: function(post) {
@@ -427,6 +437,40 @@ TumblrMachinePost.prototype = {
     this.askingUrl = post.asking_url; // string
     this.question = post.question; // string
     this.answer = post.answer; // string
+  },
+
+  __formattedContent: function() {
+    var html = "";
+    switch (this.type) {
+      case "photo":
+        var image = this.imagesForSize('m')[0];
+        if (image) {
+          html += '<img src="' + image.url + '" />';
+        }
+        if (this.caption !== "") {
+          html += this.caption;
+        }
+        return html;
+        break;
+      case "video":
+        var video = this.videoForSize('m').embed_code;
+        if (video) {
+          html += video;
+        }
+        if (this.caption !== "") {
+          html += this.caption;
+        }
+        return html;
+        break;
+      case "text":
+        return this.body;
+      default:
+        return null;
+    }
+  },
+
+  contentAsObject: function() {
+
   }
 };
 
